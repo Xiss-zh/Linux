@@ -1,15 +1,27 @@
 # CentOS7基本优化
 
-### 1、安装配置网卡名称为ethx
+### 1、系统安装配置网卡名称为ethx
 
-```
-# 在
+```shell
+# 在安装界面tab键增加如下命令
 net.ifnames=0 biosdevname=0
 ```
 
+![image-20230504172931650](D:\Github\Linux\png\image-20230504172931650.png)
 
 
-### 1、配置阿里yum源和epel源
+
+### 2、安装过程中的一些基本截图
+
+![image-20230504173429632](D:\Github\Linux\png\image-20230504173429632.png)
+
+![image-20230504173535034](D:\Github\Linux\png\image-20230504173535034.png)
+
+![image-20230504173639242](D:\Github\Linux\png\image-20230504173639242.png)
+
+![image-20230504173619330](D:\Github\Linux\png\image-20230504173619330.png)
+
+### 3、配置阿里yum源和epel源
 
 ```shell
 # 备份源
@@ -29,7 +41,7 @@ curl -o /etc/yum.repos.d/epel.repo https://mirrors.aliyun.com/repo/epel-7.repo
 yum makecache
 ```
 
-### 2、关闭防火墙和selinux
+### 4、关闭防火墙和selinux
 
 ```shell
 # 关闭防火墙
@@ -42,7 +54,7 @@ setenforce 0 && sed -ri 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/co
 getenforce
 ```
 
-### 3、安装常用工具
+### 5、安装常用工具与更新系统
 
 ```
 yum install -y vim wget unzip net-tools telnet
@@ -57,19 +69,19 @@ exclude=kernel*
 EOF
 
 # 更新centos系统
-yum update
+yum -y update
 ```
 
 
 
-### 4、禁用NetworkManager
+### 6、禁用NetworkManager
 
 ```shell
 # centos7默认使用network管理网络，禁用NetworkManager减少干扰，比如会干扰k8s的pod之间网络
 systemctl disable --now NetworkManager
 ```
 
-### 5、调整网卡配置
+### 7、调整网卡配置
 
 ```shell
 # 删除多余配置，做系统模板特别是uuid和mac不能保留
@@ -92,11 +104,11 @@ DNS2=223.5.5.5
 systemctl restart network
 ```
 
-### 6、配置时间同步
+### 8、配置时间同步
 
 ```shell
 # 使用chrony时间同步
-yum install chrony
+yum -y install chrony
 
 # 增加时间国内时间同步源
 vim /etc/chrony.conf
@@ -106,7 +118,7 @@ server ntp.aliyun.com iburst
 server cn.ntp.org.cn iburst
 
 #运行chrony服务并开机自启
-systemctl enable chronyd --now
+systemctl enable --now chronyd
 
 # 查看同步进度
 chronyc sources –v
@@ -116,29 +128,7 @@ hwclock --show
 hwclock --systohc
 ```
 
-
-
-```shell
-# 设置history保留1000条
-cat >> /etc/bashrc << EOF
-# 保留1000条命令记录
-export HISTSIZE=1000
-export HISTFILESIZE=1000
-EOF
-```
-
-```shell
-# 设置支持中文字符集
-sed -i "s/en_US.UTF-8/zh_CN.UTF-8/g" /etc/locale.conf
-```
-
-
-
-```
-chmod 744 /etc/rc.d/rc.local
-```
-
-
+### 9、基本内核优化
 
 ```shell
 cat >> /etc/sysctl.conf << EOF
@@ -151,22 +141,16 @@ vm.min_free_kbytes = 524288
 # 设置系统中所允许文件描述符的数量限制1024*1024
 fs.file-max = 1048576
 
+# 设置Linux下进程数量的限制
+kernel.pid_max = 32768
+
 EOF
 ```
 
-```shell
-# 查看最大句柄数量限制
-cat /proc/sys/fs/file-max
-
-# 查看系统总的进程数，默认32768已经够用
-cat /proc/sys/kernel/pid_max
-
-# 查看当前系统打开的句柄数量和最大句柄数量限制
-cat /proc/sys/fs/file-nr
-```
+### 10、优化limit限制
 
 ```shell
-# 修改用户limit限制
+# 修改limit限制
 cat >> /etc/security/limits.conf << EOF
 # 不限制最大锁定内存地址空间
 *    soft    memlock    unlimited
@@ -212,23 +196,30 @@ sed -i "s?#DefaultLimitNPROC=?DefaultLimitNPROC=65536?g" /etc/systemd/user.conf
 
 ## 对于用户limit限制，需调整sshd配置,当我们用ssh客户端工具连接后,才会生效
 # centos7.4以上
-echo "UsePAM yes" >>/etc/ssh/sshd_config
+echo "UsePAM yes" >> /etc/ssh/sshd_config
 
 #centos7.3以下
-echo "UseLogin yes" >>/etc/ssh/sshd_config
+echo "UseLogin yes" >> /etc/ssh/sshd_config
 
-systemctl restart sshd
 
 # 重启生效
 reboot
+
 # 查看limit生效
 ulimit -a
 
 
+# 查看最大句柄数量限制
+cat /proc/sys/fs/file-max
 
+# 查看系统总的进程数量
+cat /proc/sys/kernel/pid_max
+
+# 查看当前系统打开的句柄数量和最大句柄数量限制
+cat /proc/sys/fs/file-nr
 ```
 
-
+### 11、vim优化
 
 ```shell
 cat >> /etc/vimrc << EOF
@@ -246,3 +237,56 @@ set showmatch
 EOF
 ```
 
+### 12、其它优化
+
+```shell
+# 设置history保留1000条
+cat >> /etc/bashrc << EOF
+# 保留1000条命令记录
+export HISTSIZE=1000
+export HISTFILESIZE=1000
+EOF
+```
+
+```shell
+# 设置支持中文字符集
+sed -i "s/en_US.UTF-8/zh_CN.UTF-8/g" /etc/locale.conf
+```
+
+
+
+```shell
+# 设置开机脚本执行权限
+chmod 744 /etc/rc.d/rc.local
+```
+
+### 12、升级内核
+
+```shell
+# 导入仓库源
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+yum -y install https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
+
+# 查看最新长期支持内核
+yum --enablerepo="elrepo-kernel" list --showduplicates | sort -r | grep kernel-lt.x86_64
+
+# 查看最新稳定版本内核
+yum --enablerepo="elrepo-kernel" list --showduplicates | sort -r | grep kernel-ml.x86_64
+
+# 安装长期支持版本内核
+yum --enablerepo=elrepo-kernel install kernel-lt-devel kernel-lt -y
+
+# 查看系统上的所有可用内核：
+awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg
+
+# 设置新内核启动
+grub2-set-default 0
+
+# 重启系统
+reboot
+
+# 查询当前内核版本
+uname -r
+```
+
+![image-20230504180710134](D:\Github\Linux\png\image-20230504180710134.png)
