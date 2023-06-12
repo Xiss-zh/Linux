@@ -7,19 +7,19 @@
 net.ifnames=0 biosdevname=0
 ```
 
-![image-20230504172931650](D:\Github\Linux\png\image-20230504172931650.png)
+![image-20230504172931650](D:\Github\Xiss-Linux\png\image-20230504172931650.png)
 
 
 
 ### 2、安装过程中的一些基本截图
 
-![image-20230504173429632](D:\Github\Linux\png\image-20230504173429632.png)
+![image-20230504173429632](D:\Github\Xiss-Linux\png\image-20230504173429632.png)
 
-![image-20230504173535034](D:\Github\Linux\png\image-20230504173535034.png)
+![image-20230504173535034](D:\Github\Xiss-Linux\png\image-20230504173535034.png)
 
-![image-20230504173639242](D:\Github\Linux\png\image-20230504173639242.png)
+![image-20230504173639242](D:\Github\Xiss-Linux\png\image-20230504173639242.png)
 
-![image-20230504173619330](D:\Github\Linux\png\image-20230504173619330.png)
+![image-20230504173619330](D:\Github\Xiss-Linux\png\image-20230504173619330.png)
 
 ### 3、配置阿里yum源和epel源
 
@@ -289,4 +289,4 @@ reboot
 uname -r
 ```
 
-![image-20230504180710134](D:\Github\Linux\png\image-20230504180710134.png)
+![image-20230504180710134](D:\Github\Xiss-Linux\png\image-20230504180710134.png)
